@@ -13,7 +13,54 @@ object WikiXmlPullParser {
 
   val allowedNamespaces = List(NormalPageNameSpace, CategoryPageNameSpace)
 
+  private def parseContributor(contributorCursorData: SMInputCursor): Option[Contributor] = {
+    def buildContributor(contributorBuilder: ContributorBuilder): Option[Contributor] = {
+      if (contributorCursorData.getNext != null) {
+        contributorCursorData.getLocalName match {
+          case "id" => buildContributor(contributorBuilder.addId(contributorCursorData.collectDescendantText(false)))
+          case "username" => buildContributor(contributorBuilder.addUserName(contributorCursorData.collectDescendantText(false)))
+          case "ip" => buildContributor(contributorBuilder.addIp(contributorCursorData.collectDescendantText(false)))
+          case _ => buildContributor(contributorBuilder)
+        }
+      } else {
+        contributorBuilder.build
+      }
+    }
+
+    buildContributor(ContributorBuilder())
+  }
+
+  private def parseRevision(revisionCursorData: SMInputCursor): Option[WikiPageRevision] = {
+
+    def buildRevision(revisionBuilder: WikiPageRevisionBuilder): Option[WikiPageRevision] = {
+      if(revisionCursorData.getNext != null) {
+        revisionCursorData.getLocalName match {
+          case "id" => buildRevision(revisionBuilder.addId(revisionCursorData.collectDescendantText(false)))
+          case "parentid" => buildRevision(revisionBuilder.addParentId(revisionCursorData.collectDescendantText(false)))
+          case "timestamp" => buildRevision(revisionBuilder.addTimeStamp(revisionCursorData.collectDescendantText(false)))
+          case "contributor" =>
+            val contributor = parseContributor(revisionCursorData.childCursor())
+            contributor match {
+              case Some(contributor) => buildRevision(revisionBuilder.addContributor(contributor))
+              case None => None
+            }
+          case "comment" => buildRevision(revisionBuilder.addComment(revisionCursorData.collectDescendantText(false)))
+          case "model" => buildRevision(revisionBuilder.addModel(revisionCursorData.collectDescendantText(false)))
+          case "format" => buildRevision(revisionBuilder.addFormat(revisionCursorData.collectDescendantText(false)))
+          case "text" => buildRevision(revisionBuilder.addText(revisionCursorData.collectDescendantText(false)))
+          case "sha1" => buildRevision(revisionBuilder.addSha1(revisionCursorData.collectDescendantText(false)))
+          case _ => buildRevision(revisionBuilder)
+        }
+      } else {
+        revisionBuilder.build
+      }
+    }
+    buildRevision(WikiPageRevisionBuilder())
+
+  }
+
   private def parsePage(pageCursorData: SMInputCursor): Option[WikiPage] = {
+
     def buildPage(pageBuilder: WikiPageBuilder): Option[WikiPage] = {
       if(pageCursorData.getNext != null) {
         pageCursorData.getLocalName match {
@@ -22,13 +69,13 @@ object WikiXmlPullParser {
           case "id" =>
             buildPage(pageBuilder.addId(pageCursorData.collectDescendantText(false)))
           case "revision" =>
-            buildPage(pageBuilder.addText(pageCursorData.childElementCursor("text").advance().collectDescendantText(false)))
+            val revision = parseRevision(pageCursorData.childCursor())
+            revision match {
+              case Some(revision) => buildPage(pageBuilder.addRevision(revision))
+              case None => None
+            }
           case "ns" =>
-            val ns = pageCursorData.collectDescendantText(false)
-            if (!allowedNamespaces.contains(ns))
-              None
-            else
-              buildPage(pageBuilder)
+            buildPage(pageBuilder.addNs(pageCursorData.collectDescendantText(false)))
           case _ =>
             buildPage(pageBuilder)
         }
