@@ -1,7 +1,7 @@
 package com.scalableminds.wikistreamer.parser
 
 
-import scala.collection.immutable.SortedMap
+import scala.collection.immutable.ListMap
 import scala.util.matching.Regex
 
 case class WikiPage(
@@ -30,8 +30,8 @@ case class WikiPageRevision(id: String,
     """(?ms)^=+ (.*?) =+(.*?)(?=^=|\z)""".r
   private val firstSectionRegex =
     """(?ms)(.*?)^=""".r
-  lazy val sections: SortedMap[String, String] = {
-    SortedMap(((firstSectionRegex.findFirstMatchIn(text).map{m =>
+  lazy val sections: ListMap[String, String] = {
+    ListMap(((firstSectionRegex.findFirstMatchIn(text).map{m =>
       Seq("" -> m.group(1))
     }).getOrElse(Seq()) ++
       sectionRegex.findAllMatchIn(text).map{m =>
