@@ -5,13 +5,12 @@ import org.codehaus.staxmate.SMInputFactory
 import org.codehaus.staxmate.in.SMInputCursor
 import java.io._
 
+
 object WikiXmlPullParser {
 
   val NormalPageNameSpace = "0"
 
-  val CategoryPageNameSpace = "14"
-
-  val allowedNamespaces = List(NormalPageNameSpace, CategoryPageNameSpace)
+  val allowedNamespaces = List(NormalPageNameSpace)
 
   private def parseContributor(contributorCursorData: SMInputCursor): Option[Contributor] = {
     def buildContributor(contributorBuilder: ContributorBuilder): Option[Contributor] = {
@@ -26,7 +25,6 @@ object WikiXmlPullParser {
         contributorBuilder.build
       }
     }
-
     buildContributor(ContributorBuilder())
   }
 
@@ -56,7 +54,6 @@ object WikiXmlPullParser {
       }
     }
     buildRevision(WikiPageRevisionBuilder())
-
   }
 
   private def parsePage(pageCursorData: SMInputCursor): Option[WikiPage] = {
@@ -75,7 +72,10 @@ object WikiXmlPullParser {
               case None => None
             }
           case "ns" =>
-            buildPage(pageBuilder.addNs(pageCursorData.collectDescendantText(false)))
+            val ns = pageCursorData.collectDescendantText(false)
+            if(allowedNamespaces.contains(ns))
+              buildPage(pageBuilder.addNs(ns))
+            else None
           case _ =>
             buildPage(pageBuilder)
         }
@@ -134,7 +134,11 @@ object WikiXmlPullParser {
       pageCursorData.getStreamReader.closeCompletely()
       Stream.empty[WikiPage]
     }
-
     stream
   }
+
+  def parseAndStream(file: File) = {
+    parse(file)
+  }
+
 }

@@ -1,5 +1,9 @@
 package com.scalableminds.wikistreamer.parser
 
+
+import scala.collection.immutable.SortedMap
+import scala.util.matching.Regex
+
 case class WikiPage(
                      title: String,
                      ns: String,
@@ -20,7 +24,21 @@ case class WikiPageRevision(id: String,
                             model: String,
                             format: String,
                             text: String,
-                            sha1: String)
+                            sha1: String) {
+
+  private val sectionRegex =
+    """(?ms)^=+ (.*?) =+(.*?)(?=^=|\z)""".r
+  private val firstSectionRegex =
+    """(?ms)(.*?)^=""".r
+  lazy val sections: SortedMap[String, String] = {
+    SortedMap(((firstSectionRegex.findFirstMatchIn(text).map{m =>
+      Seq("" -> m.group(1))
+    }).getOrElse(Seq()) ++
+      sectionRegex.findAllMatchIn(text).map{m =>
+      m.group(1) -> m.group(2)
+    }):_*)
+  }
+}
 
 sealed trait Contributor
 case class User(username: String, id: String) extends Contributor
