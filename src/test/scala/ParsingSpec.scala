@@ -31,6 +31,12 @@ class ParsingSpec extends Specification {
         }
       }
     }
+
+    "parse categories" in new withWikiFile {
+      val firstPage = parsed.head
+      firstPage.revision.categories.size must be_==(4)
+//      println(firstPage.revision.categories.mkString("\n"))
+    }
   }
 }
 

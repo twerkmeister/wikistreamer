@@ -39,7 +39,12 @@ case class WikiPageRevision(id: String,
     }):_*)
   }
 
-  def processedText = text
+  val processedText = processText(text)
+
+  def processText(text: String) = text
+
+  val categories: List[String] = Nil
+
 }
 
 object CleaningRegexes {
@@ -48,16 +53,19 @@ object CleaningRegexes {
   val recursiveRegexes = List(doubleCurly, singleCurly)
 
   val refs = """<ref.*?>.*?<(/ref.*?|ref.*?/)>"""
-  val amp = """&amp;(&[a-z]{1,4};)?"""
+  val amp = """&nbsp;"""
   val enclosingAngledbrackets = """<(.*?)( .*?)?>(.*?)</\1>"""
   val angledBrackets = """<.*?>"""
+  val typedSquareBrackets ="""\[\[([^\[\] ]*?):[^\[\]]*?(\[\[[^\[\]]*?\]\])?[^\[\]]*?\]\]"""
+  val htmlComment = """(?s)<!--.*?-->"""
+  val outlinks = """\[https?://[^\[\]]*?\]"""
 
-  val singleUseRegexes = List(refs, enclosingAngledbrackets, angledBrackets, amp)
+  val singleUseRegexes = List(refs, enclosingAngledbrackets, angledBrackets, amp, typedSquareBrackets, htmlComment, outlinks)
 }
 
 trait CleanedText extends WikiPageRevision {
   import CleaningRegexes.{recursiveRegexes, singleUseRegexes}
-  lazy val cleaned = {
+  def clean(text: String) = {
     def loop(text: String, regex: String): String = {
       val res = text.replaceAll(regex, "")
       if(res == text)
@@ -68,7 +76,29 @@ trait CleanedText extends WikiPageRevision {
     singleUseRegexes.fold(afterRecursive)((text, regex) => text.replaceAll(regex, ""))
   }
 
-  override def processedText = cleaned
+  override def processText(text: String) = super.processText(clean(text))
+}
+
+trait Categories extends WikiPageRevision {
+  val categoriesRegex = """\[\[Kategorie:(.*?)(\|(.*?))?\]\]""".r
+  override val categories: List[String] = categoriesRegex.findAllMatchIn(text).map{ categoryMatch =>
+    categoryMatch.group(1)
+  }.toList
+}
+
+trait Links extends WikiPageRevision {
+  val linkRegex = """\[\[\(.*?)\]\]""".r
+  val namedLinkRegex = """\[\[(.*?)\|(.*?)\]\]""".r
+
+
+  private val linkMatches = linkRegex.findAllMatchIn(processedText)
+
+  override def processText(text: String) = {
+    val namedLinkMatches = namedLinkRegex.findAllMatchIn(processedText).toList
+    val textWithoutNamedLinks = namedLinkMatches.fold(text)((text, m) => text.replaceAll(m.group(0), m.group(2)))
+    val linkMatches = linkRegex.findAllMatchIn(textWithoutNamedLinks)
+//    val textWithoutLinks =
+  }
 }
 
 sealed trait Contributor
