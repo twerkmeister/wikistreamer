@@ -37,6 +37,11 @@ class ParsingSpec extends Specification {
       firstPage.revision.categories.size must be_==(4)
 //      println(firstPage.revision.categories.mkString("\n"))
     }
+
+    "extract Links" in new withWikiFile {
+      val firstPage = parsed.head
+      firstPage.revision.links.size must be_>(0)
+    }
   }
 }
 

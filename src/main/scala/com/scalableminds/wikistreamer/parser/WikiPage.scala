@@ -45,11 +45,13 @@ case class WikiPageRevision(id: String,
 
   val categories: List[String] = Nil
 
+  val links: Array[String] = Array.empty[String]
+
 }
 
 object CleaningRegexes {
-  val doubleCurly = """\{\{[^\{]*?\}\}"""
-  val singleCurly = """:?\{[^\{]*?\}"""
+  val doubleCurly = """\{\{[^\{]*?\}\};?"""
+  val singleCurly = """:?\{[^\{]*?\};?"""
   val recursiveRegexes = List(doubleCurly, singleCurly)
 
   val refs = """<ref.*?>.*?<(/ref.*?|ref.*?/)>"""
@@ -59,8 +61,10 @@ object CleaningRegexes {
   val typedSquareBrackets ="""\[\[([^\[\] ]*?):[^\[\]]*?(\[\[[^\[\]]*?\]\])?[^\[\]]*?\]\]"""
   val htmlComment = """(?s)<!--.*?-->"""
   val outlinks = """\[https?://[^\[\]]*?\]"""
+  val emptyLines = """(?m)^(:|\*)\s*$"""
 
-  val singleUseRegexes = List(refs, enclosingAngledbrackets, angledBrackets, amp, typedSquareBrackets, htmlComment, outlinks)
+
+  val singleUseRegexes = List(refs, enclosingAngledbrackets, angledBrackets, amp, typedSquareBrackets, htmlComment, emptyLines)
 }
 
 trait CleanedText extends WikiPageRevision {
@@ -86,18 +90,28 @@ trait Categories extends WikiPageRevision {
   }.toList
 }
 
-trait Links extends WikiPageRevision {
-  val linkRegex = """\[\[\(.*?)\]\]""".r
-  val namedLinkRegex = """\[\[(.*?)\|(.*?)\]\]""".r
+object LinkRegexes {
+  val linkRegex = """\[\[(.*?)\]\]""".r
+  val namedLinkRegex = """\[\[([^\[\]]*?)\|(.*?)\]\]""".r
+}
 
+trait ExtractLinks extends WikiPageRevision {
+  import LinkRegexes._
 
-  private val linkMatches = linkRegex.findAllMatchIn(processedText)
+  override val links: Array[String] = extractLinks(processedText)
 
-  override def processText(text: String) = {
-    val namedLinkMatches = namedLinkRegex.findAllMatchIn(processedText).toList
-    val textWithoutNamedLinks = namedLinkMatches.fold(text)((text, m) => text.replaceAll(m.group(0), m.group(2)))
-    val linkMatches = linkRegex.findAllMatchIn(textWithoutNamedLinks)
-//    val textWithoutLinks =
+  def extractLinks(text: String): Array[String] = {
+    (namedLinkRegex.findAllMatchIn(text).map{m => m.group(2)} ++
+    linkRegex.findAllMatchIn(text).map{m => m.group(1)}).toArray
+  }
+}
+
+trait RemoveLinks extends WikiPageRevision {
+  import LinkRegexes._
+
+  override def processText(text: String): String = {
+    val textWithoutLinks = text.replaceAll(namedLinkRegex.toString, "$2").replaceAll(linkRegex.toString, "$1")
+    super.processText(textWithoutLinks)
   }
 }
 

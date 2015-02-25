@@ -45,7 +45,7 @@ case class WikiPageRevisionBuilder(id: Option[String] = None,
 
   def build = {
     (id, parentId, timeStamp, contributor, comment, model, format, text, sha1) match {
-      case (Some(id), Some(parentId), Some(timeStamp), Some(contributor), commentOpt, Some(model), Some(format), Some(text), Some(sha1)) => Some(new WikiPageRevision(id, parentId, timeStamp, contributor, commentOpt, model, format, text, sha1) with CleanedText with Categories)
+      case (Some(id), Some(parentId), Some(timeStamp), Some(contributor), commentOpt, Some(model), Some(format), Some(text), Some(sha1)) => Some(new WikiPageRevision(id, parentId, timeStamp, contributor, commentOpt, model, format, text, sha1) with RemoveLinks with CleanedText with Categories)
       case _ => None
     }
   }
