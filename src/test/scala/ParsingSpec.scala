@@ -21,6 +21,15 @@ class ParsingSpec extends Specification {
       val secondPage = parsed.tail.head
       secondPage.revision.sections.foreach{ case (headline, content) => println(headline)}
       secondPage.revision.sections.size must be_==(16)
+      parsed.foreach{page =>
+        page.revision.sections.foreach{
+          case (title, text) =>
+            println(title)
+            println("=" *title.size)
+            println(text)
+            println()
+        }
+      }
     }
   }
 }

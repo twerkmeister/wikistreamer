@@ -31,13 +31,44 @@ case class WikiPageRevision(id: String,
   private val firstSectionRegex =
     """(?ms)(.*?)^=""".r
   lazy val sections: ListMap[String, String] = {
-    ListMap(((firstSectionRegex.findFirstMatchIn(text).map{m =>
+    ListMap(((firstSectionRegex.findFirstMatchIn(processedText).map{m =>
       Seq("" -> m.group(1))
     }).getOrElse(Seq()) ++
-      sectionRegex.findAllMatchIn(text).map{m =>
+      sectionRegex.findAllMatchIn(processedText).map{m =>
       m.group(1) -> m.group(2)
     }):_*)
   }
+
+  def processedText = text
+}
+
+object CleaningRegexes {
+  val doubleCurly = """\{\{[^\{]*?\}\}"""
+  val singleCurly = """:?\{[^\{]*?\}"""
+  val recursiveRegexes = List(doubleCurly, singleCurly)
+
+  val refs = """<ref.*?>.*?<(/ref.*?|ref.*?/)>"""
+  val amp = """&amp;(&[a-z]{1,4};)?"""
+  val enclosingAngledbrackets = """<(.*?)( .*?)?>(.*?)</\1>"""
+  val angledBrackets = """<.*?>"""
+
+  val singleUseRegexes = List(refs, enclosingAngledbrackets, angledBrackets, amp)
+}
+
+trait CleanedText extends WikiPageRevision {
+  import CleaningRegexes.{recursiveRegexes, singleUseRegexes}
+  lazy val cleaned = {
+    def loop(text: String, regex: String): String = {
+      val res = text.replaceAll(regex, "")
+      if(res == text)
+        text
+      else loop(res, regex)
+    }
+    val afterRecursive = recursiveRegexes.fold(text)((text, regex) => loop(text, regex))
+    singleUseRegexes.fold(afterRecursive)((text, regex) => text.replaceAll(regex, ""))
+  }
+
+  override def processedText = cleaned
 }
 
 sealed trait Contributor
