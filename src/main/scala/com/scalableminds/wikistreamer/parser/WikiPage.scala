@@ -115,6 +115,15 @@ trait RemoveLinks extends WikiPageRevision {
   }
 }
 
+trait RemoveEnumerations extends WikiPageRevision {
+  override def processText(text: String): String = {
+    val enumerationStarterLine = """(?m)^.*?:\n(?=^\*)"""
+    val enumeration = """(?m)^\*.*?$"""
+    val textWithoutEnumerations = text.replaceAll(enumerationStarterLine, "").replaceAll(enumeration, "")
+    super.processText(textWithoutEnumerations)
+  }
+}
+
 sealed trait Contributor
 case class User(username: String, id: String) extends Contributor
 case class AnonymousUser(ip: String) extends Contributor
