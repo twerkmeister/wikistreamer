@@ -46,7 +46,7 @@ class ParsingSpec extends Specification {
 }
 
 trait withWikiFile extends Scope {
-  val wikiFilePath = "assets/dev-wiki.xml"
+  val wikiFilePath = "assets/dev-wiki-long.xml"
   val wikiFile = new File(wikiFilePath)
   val parsed = WikiXmlPullParser.parse(wikiFile)
 }

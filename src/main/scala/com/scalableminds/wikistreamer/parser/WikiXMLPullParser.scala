@@ -7,7 +7,7 @@ import java.io._
 
 
 object WikiXmlPullParser {
-
+  
   val NormalPageNameSpace = "0"
 
   val allowedNamespaces = List(NormalPageNameSpace)
@@ -64,7 +64,7 @@ object WikiXmlPullParser {
           case "title" =>
             buildPage(pageBuilder.addTitle(pageCursorData.collectDescendantText(false)))
           case "id" =>
-            buildPage(pageBuilder.addId(pageCursorData.collectDescendantText(false)))
+            buildPage(pageBuilder.addId(pageCursorData.collectDescendantText  (false)))
           case "revision" =>
             val revision = parseRevision(pageCursorData.childCursor())
             revision match {
@@ -121,6 +121,10 @@ object WikiXmlPullParser {
       }
     } else
       Stream.empty
+  }
+
+  def parse(fileName: String): Stream[WikiPage] = {
+    parse(new File(fileName))
   }
 
   def parse(file: File): Stream[WikiPage] = {
