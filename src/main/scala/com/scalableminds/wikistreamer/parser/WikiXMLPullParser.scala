@@ -6,8 +6,8 @@ import org.codehaus.staxmate.in.SMInputCursor
 import java.io._
 
 
-object WikiXmlPullParser {
-  
+class WikiXmlPullParser(revisionBuilderFactory: RevisionBuilderFactory) {
+
   val NormalPageNameSpace = "0"
 
   val allowedNamespaces = List(NormalPageNameSpace)
@@ -53,7 +53,7 @@ object WikiXmlPullParser {
         revisionBuilder.build
       }
     }
-    buildRevision(WikiPageRevisionBuilder())
+    buildRevision(revisionBuilderFactory.create())
   }
 
   private def parsePage(pageCursorData: SMInputCursor): Option[WikiPage] = {

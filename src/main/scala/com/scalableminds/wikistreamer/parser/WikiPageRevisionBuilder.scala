@@ -10,6 +10,7 @@ case class WikiPageRevisionBuilder(id: Option[String] = None,
                                    text: Option[String] = None,
                                    sha1: Option[String] = None) {
 
+
   def addId(id: String) = copy(id = Some(id))
   def addParentId(parentId: String) = copy(parentId = Some(parentId))
   def addTimeStamp(timeStamp: String) = copy(timeStamp = Some(timeStamp))
@@ -36,6 +37,50 @@ case class WikiPageRevisionBuilder(id: Option[String] = None,
                     format: String,
                     text: String,
                     sha1: String): WikiPageRevision = {
-    new WikiPageRevision(id, parentId, timeStamp, contributor, comment, model, format, text, sha1)
+    new WikiPageRevision(id, parentId, timeStamp, contributor, comment, model, format, text, sha1) with Categories
   }
+}
+
+class CleanTextWikiPageRevisonBuilder() extends WikiPageRevisionBuilder {
+  override def buildSpecific(id: String,
+                             parentId: String,
+                             timeStamp: String,
+                             contributor: Contributor,
+                             comment: Option[String],
+                             model: String,
+                             format: String,
+                             text: String,
+                             sha1: String): WikiPageRevision = {
+    new WikiPageRevision(id, parentId, timeStamp, contributor, comment, model, format, text, sha1) with RemoveLinks with RemoveEnumerations with Categories with CleanedText
+  }
+}
+
+class TextWithLinksWikiPageRevisonBuilder() extends WikiPageRevisionBuilder {
+  override def buildSpecific(id: String,
+                             parentId: String,
+                             timeStamp: String,
+                             contributor: Contributor,
+                             comment: Option[String],
+                             model: String,
+                             format: String,
+                             text: String,
+                             sha1: String): WikiPageRevision = {
+    new WikiPageRevision(id, parentId, timeStamp, contributor, comment, model, format, text, sha1) with RemoveEnumerations with Categories with CleanedText
+  }
+}
+
+trait RevisionBuilderFactory {
+  def create(): WikiPageRevisionBuilder
+}
+
+class DefaultRevisionBuilderFactory() extends RevisionBuilderFactory{
+  def create() = WikiPageRevisionBuilder()
+}
+
+class CleanTextRevisionBuilderFactory() extends RevisionBuilderFactory {
+  def create() = new CleanTextWikiPageRevisonBuilder()
+}
+
+class TextWithLinksRevisionBuilderFactory() extends RevisionBuilderFactory {
+  def create() = new TextWithLinksWikiPageRevisonBuilder()
 }
