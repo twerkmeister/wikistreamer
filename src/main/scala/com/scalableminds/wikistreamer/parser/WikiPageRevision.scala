@@ -30,7 +30,7 @@ case class WikiPageRevision(id: String,
 
   def processText(text: String) = text
 
-  val categories: List[String] = Nil
+  val categories: Set[String] = Set.empty[String]
 
   val links: Array[String] = Array.empty[String]
 
@@ -73,9 +73,9 @@ trait CleanedText extends WikiPageRevision {
 
 trait Categories extends WikiPageRevision {
   val categoriesRegex = """\[\[Kategorie:(.*?)(\|(.*?))?\]\]""".r
-  override val categories: List[String] = categoriesRegex.findAllMatchIn(text).map{ categoryMatch =>
+  override val categories: Set[String] = categoriesRegex.findAllMatchIn(text).map{ categoryMatch =>
     categoryMatch.group(1)
-  }.toList
+  }.toSet
 }
 
 object LinkRegexes {
