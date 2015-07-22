@@ -6,7 +6,7 @@ import org.codehaus.staxmate.in.SMInputCursor
 import java.io._
 
 
-class WikiXmlPullParser(revisionBuilderFactory: RevisionBuilderFactory) {
+class WikiXmlPullParser {
 
   val NormalPageNameSpace = "0"
 
@@ -37,8 +37,8 @@ class WikiXmlPullParser(revisionBuilderFactory: RevisionBuilderFactory) {
           case "parentid" => buildRevision(revisionBuilder.addParentId(revisionCursorData.collectDescendantText(false)))
           case "timestamp" => buildRevision(revisionBuilder.addTimeStamp(revisionCursorData.collectDescendantText(false)))
           case "contributor" =>
-            val contributor = parseContributor(revisionCursorData.childCursor())
-            contributor match {
+            val contributorOpt = parseContributor(revisionCursorData.childCursor())
+            contributorOpt match {
               case Some(contributor) => buildRevision(revisionBuilder.addContributor(contributor))
               case None => None
             }
@@ -53,12 +53,12 @@ class WikiXmlPullParser(revisionBuilderFactory: RevisionBuilderFactory) {
         revisionBuilder.build
       }
     }
-    buildRevision(revisionBuilderFactory.create())
+    buildRevision(new WikiPageRevisionBuilder)
   }
 
-  private def parsePage(pageCursorData: SMInputCursor): Option[WikiPage] = {
+  private def parsePage(pageCursorData: SMInputCursor): Option[WikiPage[Original]] = {
 
-    def buildPage(pageBuilder: WikiPageBuilder): Option[WikiPage] = {
+    def buildPage(pageBuilder: WikiPageBuilder): Option[WikiPage[Original]] = {
       if(pageCursorData.getNext != null) {
         pageCursorData.getLocalName match {
           case "title" =>
@@ -111,7 +111,7 @@ class WikiXmlPullParser(revisionBuilderFactory: RevisionBuilderFactory) {
     }
   }
 
-  private def parsePages(pagesCursor: SMInputCursor): Stream[WikiPage] = {
+  private def parsePages(pagesCursor: SMInputCursor): Stream[WikiPage[Original]] = {
     if(pagesCursor.getNext != null){
       parsePage(pagesCursor.childElementCursor()) match{
         case Some(page) =>
@@ -120,14 +120,14 @@ class WikiXmlPullParser(revisionBuilderFactory: RevisionBuilderFactory) {
           parsePages(pagesCursor)
       }
     } else
-      Stream.empty
+      Stream.empty[WikiPage[Original]]
   }
 
-  def parse(fileName: String): Stream[WikiPage] = {
+  def parse(fileName: String): Stream[WikiPage[Original]] = {
     parse(new File(fileName))
   }
 
-  def parse(file: File): Stream[WikiPage] = {
+  def parse(file: File): Stream[WikiPage[Original]] = {
     val factory = XMLInputFactory.newInstance()
     factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false)
     val inf = new SMInputFactory(factory)
@@ -136,7 +136,7 @@ class WikiXmlPullParser(revisionBuilderFactory: RevisionBuilderFactory) {
     val pageCursorData = rootCursor.childElementCursor("page")
     val stream = parsePages(pageCursorData) ++ {
       pageCursorData.getStreamReader.closeCompletely()
-      Stream.empty[WikiPage]
+      Stream.empty[WikiPage[Original]]
     }
     stream
   }

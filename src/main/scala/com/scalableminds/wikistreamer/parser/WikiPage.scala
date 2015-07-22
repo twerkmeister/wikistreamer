@@ -1,10 +1,10 @@
 package com.scalableminds.wikistreamer.parser
 
+sealed trait WikiPageStatus
+sealed trait Original extends WikiPageStatus
+sealed trait Altered extends WikiPageStatus
 
-import scala.collection.immutable.ListMap
-import scala.util.matching.Regex
-
-case class WikiPage(
+case class WikiPage[WikiPageStatus](
                      title: String,
                      ns: String,
                      id: String,

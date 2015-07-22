@@ -15,7 +15,7 @@ case class WikiPageBuilder(title: Option[String] = None, ns: Option[String] = No
   copy(revision = Some(revision))
 
 
-  def build = {
+  def build: Option[WikiPage[Original]] = {
     (title, ns, id, revision) match {
       case (Some(title), Some(ns), Some(id), Some(revision)) => Some(WikiPage(title, ns, id, revision))
       case _ => None
