@@ -1,9 +1,10 @@
 import java.io.File
 
-import com.scalableminds.wikistreamer.transformers.extractors.SectionExtractor
+import com.scalableminds.wikistreamer.transformers.extractors.{LinkExtractor, SectionExtractor}
 import org.specs2.mutable._
 import org.specs2.specification.Scope
 import com.scalableminds.wikistreamer.parser.WikiXmlPullParser
+import com.scalableminds.wikistreamer.util.Pipeline.toPipedStream
 
 import scala.collection.immutable.ListMap
 
@@ -19,7 +20,7 @@ class ParsingSpec extends Specification {
     }
 
     "extract sections" in new withDevWiki {
-      val pagesWithSections = parsed.map{SectionExtractor.extract}
+      val pagesWithSections = parsed |> SectionExtractor
       val firstPage = pagesWithSections.head
       firstPage.revision.sections must beSome
       firstPage.revision.sections.map{ sections =>
@@ -28,7 +29,16 @@ class ParsingSpec extends Specification {
       }
     }
 
-    
+    "extract links" in new withDevWiki {
+      val pagesWithLinks = parsed |> LinkExtractor
+      val firstPage = pagesWithLinks.head
+      firstPage.revision.links must beSome
+      firstPage.revision.links foreach { links =>
+        println(links.mkString("\n"))
+      }
+    }
+
+
 
 //    "parse sections" in new withWikiFile {
 //      val firstPage = parsed.head

@@ -5,10 +5,10 @@ import com.scalableminds.wikistreamer.transformers.util.SectionRegexes
 
 import scala.collection.immutable.ListMap
 
-object SectionExtractor {
+object SectionExtractor extends Function[WikiPage[Original], WikiPage[Original]]{
   import SectionRegexes._
 
-  def extract(wikiPage: WikiPage[Original]): WikiPage[Original] = {
+  def apply(wikiPage: WikiPage[Original]): WikiPage[Original] = {
     val sections = ListMap(firstSectionRegex.findFirstMatchIn(wikiPage.revision.text).map{m =>
       Seq("" -> m.group(1))
     }.getOrElse(Seq()) ++

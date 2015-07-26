@@ -132,7 +132,6 @@ class WikiXmlPullParser {
     factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false)
     val inf = new SMInputFactory(factory)
     val rootCursor = inf.rootElementCursor(file).advance()
-    println(rootCursor.getLocalName)
     val pageCursorData = rootCursor.childElementCursor("page")
     val stream = parsePages(pageCursorData) ++ {
       pageCursorData.getStreamReader.closeCompletely()

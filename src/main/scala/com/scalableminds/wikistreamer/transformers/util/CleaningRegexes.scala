@@ -6,6 +6,7 @@ object CleaningRegexes {
   val recursiveRegexes = List(doubleCurly, singleCurly)
 
   val refs = """<ref.*?>.*?<(/ref.*?|ref.*?/)>"""
+  val source = """(?s)<(source.*?|code.*?)>.*?<(/source.*?|source.*?/|/code.*?|code.*?/)>"""
   val amp = """&nbsp;"""
   val enclosingAngledbrackets = """<(.*?)( .*?)?>(.*?)</\1>"""
   val galleries = """(?s)<gallery([^<>]*?)?>.*?</gallery>"""
@@ -14,7 +15,9 @@ object CleaningRegexes {
   val htmlComment = """(?s)<!--.*?-->"""
   val outlinks = """\[https?://[^\[\]]*?\]"""
   val emptyLines = """(?m)^(:|\*|;)\s*$"""
+  val files = """(?m)^\[\[Datei:.*?$"""
 
 
-  val singleUseRegexes = List(refs, enclosingAngledbrackets, angledBrackets, amp, galleries, typedSquareBrackets, htmlComment, emptyLines)
+//  val singleUseRegexes = List(refs, enclosingAngledbrackets, angledBrackets, amp, galleries, typedSquareBrackets, htmlComment, emptyLines)
+  val singleUseRegexes = List(refs, files, source, galleries, enclosingAngledbrackets, htmlComment)
 }

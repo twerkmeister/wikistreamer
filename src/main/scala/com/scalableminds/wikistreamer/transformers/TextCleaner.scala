@@ -3,10 +3,10 @@ package com.scalableminds.wikistreamer.transformers
 import com.scalableminds.wikistreamer.parser.{WikiPage, Altered, WikiPageRevision}
 import com.scalableminds.wikistreamer.transformers.util.CleaningRegexes
 
-object TextCleaner {
+object TextCleaner extends Function[WikiPage[_], WikiPage[Altered]] {
   import CleaningRegexes._
 
-  def transform(wikiPage: WikiPage[_]): WikiPage[Altered] = {
+  def apply(wikiPage: WikiPage[_]): WikiPage[Altered] = {
     def loop(text: String, regex: String): String = {
       val res = text.replaceAll(regex, "")
       if(res == text)
