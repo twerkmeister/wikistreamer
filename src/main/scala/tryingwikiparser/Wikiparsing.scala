@@ -1,9 +1,5 @@
 package tryingwikiparser
 
-//import org.dbpedia.extraction.sources._
-//import org.dbpedia.extraction.wikiparser._
-//import org.dbpedia.extraction.util._
-
 import com.scalableminds.wikistreamer.transformers.extractors.CategoryExtractor
 import org.sweble.wikitext.parser._
 import org.sweble.wikitext.parser.nodes.WtLinkTitle.WtNoLinkTitle
@@ -12,7 +8,7 @@ import org.sweble.wikitext.parser.utils.SimpleParserConfig
 import com.scalableminds.wikistreamer.parser._
 import java.io.File
 import com.scalableminds.wikistreamer.transformers.TextCleaner
-import com.scalableminds.wikistreamer.util.Pipeline.toPipedStream
+import com.scalableminds.wikistreamer.util.Pipeline._
 
 import scala.util.Random
 
@@ -63,7 +59,7 @@ object Wikiparsing {
     val config = new SimpleParserConfig(true, true, true)
     val textParser = new WikitextParser(config)
 
-    wikipages.filter(page => page.revision.categories.getOrElse(Set()).contains("Mann")).foreach { page =>
+    wikipages.filter(page => page.revision.categories.getOrElse(Set()).contains("Mann")) map { page =>
 
       val parsed = textParser.parseArticle(page.revision.text, page.title)
 //      parsed.toArray().foreach{ node =>

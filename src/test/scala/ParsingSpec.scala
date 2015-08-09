@@ -4,7 +4,7 @@ import com.scalableminds.wikistreamer.transformers.extractors.{LinkExtractor, Se
 import org.specs2.mutable._
 import org.specs2.specification.Scope
 import com.scalableminds.wikistreamer.parser.WikiXmlPullParser
-import com.scalableminds.wikistreamer.util.Pipeline.toPipedStream
+import com.scalableminds.wikistreamer.util.Pipeline._
 
 import scala.collection.immutable.ListMap
 
@@ -15,26 +15,33 @@ class ParsingSpec extends Specification {
     }
 
     "parse the right content" in new withDevWiki {
-      parsed.head.title must beEqualTo("Alan Smithee")
-      parsed.head.revision.text must not be empty
+      parsed.headOption must beSome
+      parsed.headOption foreach { firstPage =>
+          firstPage.title must beEqualTo("Alan Smithee")
+          firstPage.revision.text must not be empty
+      }
     }
 
     "extract sections" in new withDevWiki {
       val pagesWithSections = parsed |> SectionExtractor
-      val firstPage = pagesWithSections.head
-      firstPage.revision.sections must beSome
-      firstPage.revision.sections.map{ sections =>
-        sections.size must be_==(8)
-        sections.get("Entstehung") must beSome[String]
+      pagesWithSections.headOption must beSome
+      pagesWithSections.headOption.foreach { firstPage =>
+        firstPage.revision.sections must beSome
+        firstPage.revision.sections foreach { sections =>
+          sections.size must be_==(8)
+          sections.get("Entstehung") must beSome[String]
+        }
       }
     }
 
     "extract links" in new withDevWiki {
       val pagesWithLinks = parsed |> LinkExtractor
-      val firstPage = pagesWithLinks.head
-      firstPage.revision.links must beSome
-      firstPage.revision.links foreach { links =>
-        println(links.mkString("\n"))
+      pagesWithLinks.headOption must beSome
+      pagesWithLinks.headOption foreach { firstPage =>
+        firstPage.revision.links must beSome
+        firstPage.revision.links foreach { links =>
+          println(links.mkString("\n"))
+        }
       }
     }
 

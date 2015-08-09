@@ -4,6 +4,7 @@ import javax.xml.stream.XMLInputFactory
 import org.codehaus.staxmate.SMInputFactory
 import org.codehaus.staxmate.in.SMInputCursor
 import java.io._
+import scalaz.EphemeralStream
 
 
 class WikiXmlPullParser {
@@ -93,41 +94,49 @@ class WikiXmlPullParser {
     }
   }
 
-  def streamToIterator[T](s: Stream[T]) = {
+  def streamToIterator[T](s: EphemeralStream[T]) = {
     new Iterator[T] {
       var underlying = s
 
-      override def hasNext: Boolean = ! underlying.isEmpty
+      override def hasNext: Boolean = !underlying.isEmpty
 
       override def next(): T = {
-        underlying match {
-          case x #:: xs =>
-            underlying = xs
-            x
-          case _ =>
-            throw new Exception("Empty Iterator")
+        if(underlying.isEmpty)
+          throw new Exception("Empty Iterator")
+        else {
+          val h = underlying.head()
+          underlying = underlying.tail()
+          h
         }
       }
     }
   }
 
-  private def parsePages(pagesCursor: SMInputCursor): Stream[WikiPage[Original]] = {
+  private def parsePages(pagesCursor: SMInputCursor): EphemeralStream[WikiPage[Original]] = {
     if(pagesCursor.getNext != null){
       parsePage(pagesCursor.childElementCursor()) match{
         case Some(page) =>
-          Stream.cons(page, parsePages(pagesCursor))
+          EphemeralStream.cons(page, parsePages(pagesCursor))
         case _ =>
           parsePages(pagesCursor)
       }
     } else
-      Stream.empty[WikiPage[Original]]
+      EphemeralStream.emptyEphemeralStream[WikiPage[Original]]
   }
 
-  def parse(fileName: String): Stream[WikiPage[Original]] = {
+  def parseToIterator(fileName: String): Iterator[WikiPage[Original]] = {
+    streamToIterator(parse(fileName))
+  }
+
+  def parseToIterator(file: File): Iterator[WikiPage[Original]] = {
+    streamToIterator(parse(file))
+  }
+
+  def parse(fileName: String): EphemeralStream[WikiPage[Original]] = {
     parse(new File(fileName))
   }
 
-  def parse(file: File): Stream[WikiPage[Original]] = {
+  def parse(file: File): EphemeralStream[WikiPage[Original]] = {
     val factory = XMLInputFactory.newInstance()
     factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false)
     val inf = new SMInputFactory(factory)
@@ -135,7 +144,7 @@ class WikiXmlPullParser {
     val pageCursorData = rootCursor.childElementCursor("page")
     val stream = parsePages(pageCursorData) ++ {
       pageCursorData.getStreamReader.closeCompletely()
-      Stream.empty[WikiPage[Original]]
+      EphemeralStream.emptyEphemeralStream[WikiPage[Original]]
     }
     stream
   }
