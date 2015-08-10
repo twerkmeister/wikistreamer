@@ -19,5 +19,5 @@ object CleaningRegexes {
 
 
 //  val singleUseRegexes = List(refs, enclosingAngledbrackets, angledBrackets, amp, galleries, typedSquareBrackets, htmlComment, emptyLines)
-  val singleUseRegexes = List(refs, files, source, galleries, enclosingAngledbrackets, htmlComment)
+  val singleUseRegexes = List(refs, files, amp, source, galleries, enclosingAngledbrackets, htmlComment)
 }

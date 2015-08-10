@@ -14,7 +14,7 @@ object TextCleaner extends Function[WikiPage[_], WikiPage[Altered]] {
       else loop(res, regex)
     }
     val afterRecursive = recursiveRegexes.fold(wikiPage.revision.text)((text, regex) => loop(text, regex))
-    val text = singleUseRegexes.fold(afterRecursive)((text, regex) => text.replaceAll(regex, ""))
+    val text = singleUseRegexes.fold(afterRecursive)((text, regex) => text.replaceAll(regex, " "))
     wikiPage.copy(revision = wikiPage.revision.copy(text = text))
   }
 }

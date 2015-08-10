@@ -18,5 +18,7 @@ libraryDependencies += "org.sweble.wikitext" % "swc-parser-lazy" % "2.0.0"
 
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.1.3"
 
+libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.5"
 
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.3"
 
