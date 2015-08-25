@@ -24,7 +24,7 @@ object WikiTextParser extends Function3[Set[String], CategoryResolver, WikiPage[
         case internalLink: WtInternalLink =>
           val target = internalLink.getTarget.get(0).asInstanceOf[WtText].getContent
           categoryResolver.categoriesForPage(target).flatMap{categories =>
-            logger.info(s"$target: ${categories.mkString(",")}")
+//            logger.info(s"$target: ${categories.mkString(",")}")
             val nextNode = if (internalLink.hasTitle) {
               internalLink.getTitle
             } else {
