@@ -2,7 +2,7 @@ name := """wikistreamer"""
 
 version := "1.0"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.10.5"
 
 // Change this to another test framework if you prefer
 
